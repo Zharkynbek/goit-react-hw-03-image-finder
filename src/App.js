@@ -25,16 +25,15 @@ class App extends Component {
 
   handleGetPictures = async (e) => {
     e.preventDefault();
-    this.setState({
-      page: 1,
+    this.setState(() => ({
       isLoad: true
-    })
-    const { query, page } = this.state;
-    const resp = await apiService(query, page);
+    }))
+    const { query} = this.state;
+    const resp = await apiService(query, 1);
     this.setState({
       pictures: resp.data.hits,
       page: 2,
-      isLoad: false
+      isLoad: false,
     });
   };
 
@@ -82,8 +81,8 @@ class App extends Component {
       <div>
         <SearchBar
           onSetQuery={handleSetQuery}
-          query={query}
           onGetPictures={handleGetPictures}
+          query={this.state.query}
         />
         <ImageGallery onOpenModal={handleOpenModal} pictures={pictures} />
         {pictures.length > 0 && (

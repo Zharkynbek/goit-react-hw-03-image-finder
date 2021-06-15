@@ -1,6 +1,6 @@
 import React from "react"
 
-const SearchBar = ({onSetQuery, onGetPictures}) => (
+const SearchBar = ({onSetQuery, onGetPictures, query}) => (
     <header className="Searchbar">
   <form className="SearchForm" onSubmit={onGetPictures}>
     <button type="submit" className="SearchForm-button">
@@ -8,6 +8,7 @@ const SearchBar = ({onSetQuery, onGetPictures}) => (
     </button>
 
       <input
+        value={query}
         onInput={onSetQuery}
       className="SearchForm-input"
       type="text"
