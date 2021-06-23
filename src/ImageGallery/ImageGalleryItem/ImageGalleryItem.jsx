@@ -1,14 +1,16 @@
 import React from "react";
 
-const ImageGalleryItem = ({onOpenModal, pictures }) => (
+const ImageGalleryItem = ({ onOpenModal, pictures, onCloseModal }) => (
   <>
-    {pictures.map(({id, webformatURL, largeImageURL, tags}) => (
+    {pictures.map(({ id, webformatURL, largeImageURL, tags }) => (
       <li key={id} className="ImageGalleryItem">
-        <img onClick={onOpenModal} src={webformatURL}
+        <img
+          onClick={onOpenModal}
+          src={webformatURL}
           alt={tags}
           data-source={largeImageURL}
           className="ImageGalleryItem-image"
-/>
+        />
       </li>
     ))}
   </>

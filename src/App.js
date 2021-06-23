@@ -16,7 +16,23 @@ class App extends Component {
     pictures: [],
     isModalOpen: false,
     modalImg: "",
-    isLoad: false
+    isLoad: false,
+  };
+
+  componentDidMount() {
+    window.addEventListener("keydown", this.handleCloseWithEscape);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.handleCloseWithEscape);
+  }
+
+  handleCloseWithEscape = (e) => {
+    if (e.code === "Escape") {
+      this.setState({
+        isModalOpen: false,
+      });
+    }
   };
 
   handleSetQuery = (e) => {
@@ -26,9 +42,9 @@ class App extends Component {
   handleGetPictures = async (e) => {
     e.preventDefault();
     this.setState(() => ({
-      isLoad: true
-    }))
-    const { query} = this.state;
+      isLoad: true,
+    }));
+    const { query } = this.state;
     const resp = await apiService(query, 1);
     this.setState({
       pictures: resp.data.hits,
@@ -47,7 +63,7 @@ class App extends Component {
       page: prev.page + 1,
     }));
     scrollGallery("ImageGallery");
-  }
+  };
 
   handleOpenModal = ({
     target: {
@@ -60,17 +76,17 @@ class App extends Component {
     });
   };
 
-  handleCloseModal = ({target: {nodeName}}) => {
+  handleCloseModal = ({ target: { nodeName } }) => {
     if (nodeName !== "IMG") {
       this.setState({
-        isModalOpen: false
-      })
+        isModalOpen: false,
+      });
     }
-  }
+  };
 
   render() {
     const {
-      state: { pictures, query, isModalOpen, modalImg, isLoad },
+      state: { pictures, isModalOpen, modalImg, isLoad },
       handleSetQuery,
       handleGetPictures,
       handleOpenModal,
@@ -90,7 +106,11 @@ class App extends Component {
         )}
         {isLoad && <Loader />}
         {isModalOpen && (
-          <Modal onCloseModal={handleCloseModal} modalImg={modalImg} />
+          <Modal
+            onCloseEscape={this.handleCloseWithEscape}
+            onCloseModal={handleCloseModal}
+            modalImg={modalImg}
+          />
         )}
       </div>
     );
