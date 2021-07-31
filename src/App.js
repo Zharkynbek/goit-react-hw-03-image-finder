@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import SearchBar from "./Searchbar/Searchbar";
 import ImageGallery from "./ImageGallery/ImageGallery";
@@ -6,115 +6,91 @@ import Modal from "./Modal/Modal";
 import Loader from "./Loader/Loader";
 import Button from "./Button/Button";
 // helpers
-import scrollGallery from "./helpers/scroll"
+import scrollGallery from "./helpers/scroll";
 import apiService from "./helpers/ApiService";
 
-class App extends Component {
-  state = {
-    query: "",
-    page: 1,
-    pictures: [],
-    isModalOpen: false,
-    modalImg: "",
-    isLoad: false,
-  };
+export default function App() {
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [pictures, setPictures] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalImg, setModalImg] = useState("");
+  const [isLoad, setIsLoad] = useState(false);
 
-  componentDidMount() {
-    window.addEventListener("keydown", this.handleCloseWithEscape);
-  }
+  useEffect(() => {
+    window.addEventListener("keydown", handleCloseWithEscape);
+    return () => window.removeEventListener("keydown", handleCloseWithEscape);
+  }, []);
 
-  componentWillUnmount() {
-    window.removeEventListener("keydown", this.handleCloseWithEscape);
-  }
-
-  handleCloseWithEscape = (e) => {
+  const handleCloseWithEscape = (e) => {
     if (e.code === "Escape") {
-      this.setState({
-        isModalOpen: false,
-      });
+      setIsModalOpen(false);
     }
   };
 
-  handleSetQuery = (e) => {
-    this.setState({ [e.target.name]: e.target.value });
+  const handleSetQuery = (e) => {
+    setQuery(e.target.value);
   };
 
-  handleGetPictures = async (e) => {
+  const handleGetPictures = async (e) => {
     e.preventDefault();
-    this.setState(() => ({
-      isLoad: true,
-    }));
-    const { query } = this.state;
-    const resp = await apiService(query, 1);
-    this.setState({
-      pictures: resp.data.hits,
-      page: 2,
-      isLoad: false,
-    });
+    setIsLoad(true);
+    const {
+      data: { hits },
+    } = await apiService(query, 1);
+    try {
+      setPictures(hits);
+      setPage(2);
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setIsLoad(false);
+    }
   };
 
-  handleLoadMorePictures = async () => {
-    const { page, query } = this.state;
+  const handleLoadMorePictures = async () => {
     const {
       data: { hits },
     } = await apiService(query, page + 1);
-    this.setState((prev) => ({
-      pictures: [...prev.pictures, ...hits],
-      page: prev.page + 1,
-    }));
+    setPictures((prevState) => [...prevState, ...hits]);
+    setPage((prevState) => prevState + 1);
     scrollGallery("ImageGallery");
   };
 
-  handleOpenModal = ({
+  const handleOpenModal = ({
     target: {
       dataset: { source },
     },
   }) => {
-    this.setState({
-      isModalOpen: true,
-      modalImg: source,
-    });
+    setIsModalOpen(true);
+    setModalImg(source);
   };
 
-  handleCloseModal = ({ target: { nodeName } }) => {
+  const handleCloseModal = ({ target: { nodeName } }) => {
     if (nodeName !== "IMG") {
-      this.setState({
-        isModalOpen: false,
-      });
+      setIsModalOpen(false);
     }
   };
 
-  render() {
-    const {
-      state: { pictures, isModalOpen, modalImg, isLoad },
-      handleSetQuery,
-      handleGetPictures,
-      handleOpenModal,
-      handleCloseModal,
-      handleLoadMorePictures,
-    } = this;
-    return (
-      <div>
-        <SearchBar
-          onSetQuery={handleSetQuery}
-          onGetPictures={handleGetPictures}
-          query={this.state.query}
+  return (
+    <div>
+      <SearchBar
+        onSetQuery={handleSetQuery}
+        onGetPictures={handleGetPictures}
+        query={query}
+      />
+      <ImageGallery onOpenModal={handleOpenModal} pictures={pictures} />
+      {pictures.length > 0 && (
+        <Button onLoadPictures={handleLoadMorePictures} />
+      )}
+      {isLoad && <Loader />}
+      {isModalOpen && (
+        <Modal
+          onCloseEscape={handleCloseWithEscape}
+          onCloseModal={handleCloseModal}
+          modalImg={modalImg}
         />
-        <ImageGallery onOpenModal={handleOpenModal} pictures={pictures} />
-        {pictures.length > 0 && (
-          <Button onLoadPictures={handleLoadMorePictures} />
-        )}
-        {isLoad && <Loader />}
-        {isModalOpen && (
-          <Modal
-            onCloseEscape={this.handleCloseWithEscape}
-            onCloseModal={handleCloseModal}
-            modalImg={modalImg}
-          />
-        )}
-      </div>
-    );
-  }
+      )}
+    </div>
+  );
 }
-
-export default App;
